@@ -5,7 +5,8 @@ import subprocess
 
 class YdotoolClicker:
     def click(self) -> None:
-        subprocess.run(
+        _ = subprocess.run(
             ["ydotool", "click", "-D", "50", "0xC0"],
-            check=True, stdout=subprocess.DEVNULL,
+            check=True,
+            stdout=subprocess.DEVNULL,
         )

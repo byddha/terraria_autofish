@@ -9,6 +9,9 @@ if TYPE_CHECKING:
 
 
 class Bot:
+    _game: Game
+    _clicker: Clicker
+
     def __init__(self, game: Game, clicker: Clicker) -> None:
         self._game = game
         self._clicker = clicker

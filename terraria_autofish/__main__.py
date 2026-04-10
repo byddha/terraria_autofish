@@ -11,8 +11,8 @@ from terraria_autofish.game import Game
 
 def main() -> None:
     provider = platform.detect()
-    atexit.register(provider.cleanup)
-    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    _ = atexit.register(provider.cleanup)
+    _ = signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
 
     device = provider.get_device()
 

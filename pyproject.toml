@@ -11,3 +11,12 @@ dependencies = [
 
 [project.scripts]
 terraria-autofish = "terraria_autofish.__main__:main"
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "B", "SIM", "RUF", "C4", "PTH", "RET"]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.39.0",
+    "ruff>=0.15.10",
+]
