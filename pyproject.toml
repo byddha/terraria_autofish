@@ -18,5 +18,6 @@ select = ["F", "E", "W", "I", "UP", "B", "SIM", "RUF", "C4", "PTH", "RET"]
 [dependency-groups]
 dev = [
     "basedpyright>=1.39.0",
+    "pre-commit>=4.5.1",
     "ruff>=0.15.10",
 ]
