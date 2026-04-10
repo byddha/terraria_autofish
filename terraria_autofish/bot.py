@@ -3,6 +3,8 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
+import frida
+
 if TYPE_CHECKING:
     from terraria_autofish.clicker.base import Clicker
     from terraria_autofish.game import Game
@@ -21,7 +23,11 @@ class Bot:
         was_biting = False
 
         while True:
-            ai1 = self._game.check_bite()
+            try:
+                ai1 = self._game.check_bite()
+            except frida.InvalidOperationError:
+                print("Game closed.")
+                break
             biting = ai1 is not None and ai1 < 0
 
             if biting and not was_biting:
