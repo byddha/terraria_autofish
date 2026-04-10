@@ -1,7 +1,29 @@
-var mono = Process.getModuleByName("libmono-2.0-x86.dll");
+// Find the module containing Mono exports.
+// Wine/Proton: "libmono-2.0-x86.dll" (32-bit, stdcall)
+// Linux native: "Terraria.bin.x86_64" (64-bit, default calling convention)
+var mono = null;
+var abi = "default";
+var ptrSize = Process.pointerSize;
+
+try {
+    mono = Process.getModuleByName("libmono-2.0-x86.dll");
+    abi = "stdcall";
+} catch (e) {
+    mono = Process.getModuleByName("Terraria.bin.x86_64");
+}
+
+// On the main executable, getExportByName fails — build a lookup table instead.
+var exportMap = {};
+mono.enumerateExports().forEach(function (exp) {
+    if (exp.name.indexOf("mono_") === 0) {
+        exportMap[exp.name] = exp.address;
+    }
+});
 
 function mf(name, ret, args) {
-    return new NativeFunction(mono.getExportByName(name), ret, args, "stdcall");
+    var addr = exportMap[name];
+    if (!addr) throw new Error("Mono export not found: " + name);
+    return new NativeFunction(addr, ret, args, abi);
 }
 
 var mono_get_root_domain = mf("mono_get_root_domain", "pointer", []);
@@ -38,6 +60,13 @@ var aiOff = mono_field_get_offset(mono_class_get_field_from_name(projClass, Memo
 
 mono_thread_detach(thread);
 
+// Mono array header:
+// 32-bit: vtable(4) + pad(4) + pad(4) + len(4) = 16 bytes
+// 64-bit: vtable(8) + pad(8) + pad(8) + len(8) = 32 bytes
+var arrayHeaderSize = ptrSize === 4 ? 16 : 32;
+// ai[1] offset from start of float array: header + sizeof(float)
+var ai1Off = arrayHeaderSize + 4;
+
 // After detach, raw pointer reads still work — we're just reading
 // process memory without being registered as a Mono thread.
 rpc.exports = {
@@ -46,17 +75,17 @@ rpc.exports = {
     checkBite: function () {
         var myPlayer = mainStatic.add(myPlayerOff).readS32();
         var projArray = mainStatic.add(projOff).readPointer();
-        var elemBase = projArray.add(16); // mono array header: vtable(4) + pad(4) + pad(4) + len(4)
+        var elemBase = projArray.add(arrayHeaderSize);
 
         for (var i = 0; i < 1000; i++) {
-            var proj = elemBase.add(i * 4).readPointer();
+            var proj = elemBase.add(i * ptrSize).readPointer();
             if (proj.isNull()) continue;
             if (!proj.add(activeOff).readU8()) continue;
             if (proj.add(ownerOff).readS32() !== myPlayer) continue;
             if (!proj.add(bobberOff).readU8()) continue;
 
             var aiArr = proj.add(aiOff).readPointer();
-            return aiArr.add(20).readFloat(); // ai[1] at array offset +20
+            return aiArr.add(ai1Off).readFloat();
         }
         return null;
     },

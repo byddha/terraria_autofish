@@ -6,6 +6,9 @@ import time
 import frida
 
 
+PROCESS_NAMES = ["Terraria.exe", "Terraria.bin.x86_64"]
+
+
 class Game:
     def __init__(self, session: frida.core.Session, script: frida.core.Script) -> None:
         self._session = session
@@ -13,13 +16,17 @@ class Game:
         self._api = script.exports_sync
 
     @classmethod
-    def connect(cls, device: frida.core.Device, process_name: str = "Terraria") -> Game:
-        procs = [p for p in device.enumerate_processes() if process_name in p.name]
+    def connect(cls, device: frida.core.Device) -> Game:
+        procs = [
+            p for p in device.enumerate_processes()
+            if p.name in PROCESS_NAMES
+        ]
         if not procs:
-            raise RuntimeError(f"{process_name} not found. Is the game running?")
+            raise RuntimeError("Terraria not found. Is the game running?")
 
-        print(f"Attaching to {procs[0].name} (PID {procs[0].pid})...")
-        session = device.attach(procs[0].pid)
+        proc = procs[0]
+        print(f"Attaching to {proc.name} (PID {proc.pid})...")
+        session = device.attach(proc.pid)
 
         js_source = importlib.resources.files("terraria_autofish.js").joinpath("check_bite.js").read_text()
         script = session.create_script(js_source)
