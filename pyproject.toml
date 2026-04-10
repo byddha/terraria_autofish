@@ -1,0 +1,13 @@
+[project]
+name = "terraria-autofish-frida"
+version = "0.1.0"
+description = "Auto-fishing for Terraria via Frida — no game modification"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "frida>=17.9.1",
+    "frida-tools>=14.8.1",
+]
+
+[project.scripts]
+terraria-autofish = "terraria_autofish.__main__:main"
