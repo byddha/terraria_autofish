@@ -57,6 +57,7 @@ var activeOff = mono_field_get_offset(mono_class_get_field_from_name(projClass, 
 var ownerOff = mono_field_get_offset(mono_class_get_field_from_name(projClass, Memory.allocUtf8String("owner")));
 var bobberOff = mono_field_get_offset(mono_class_get_field_from_name(projClass, Memory.allocUtf8String("bobber")));
 var aiOff = mono_field_get_offset(mono_class_get_field_from_name(projClass, Memory.allocUtf8String("ai")));
+var localAIOff = mono_field_get_offset(mono_class_get_field_from_name(projClass, Memory.allocUtf8String("localAI")));
 
 mono_thread_detach(thread);
 
@@ -85,7 +86,10 @@ rpc.exports = {
             if (!proj.add(bobberOff).readU8()) continue;
 
             var aiArr = proj.add(aiOff).readPointer();
-            return aiArr.add(ai1Off).readFloat();
+            var ai1 = aiArr.add(ai1Off).readFloat();
+            var localAIArr = proj.add(localAIOff).readPointer();
+            var localAI1 = localAIArr.add(ai1Off).readFloat();
+            return [ai1, localAI1];
         }
         return null;
     },

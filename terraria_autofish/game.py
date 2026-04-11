@@ -38,8 +38,11 @@ class Game:
 
         return cls(session, script)
 
-    def check_bite(self) -> float | None:
-        return self._script.exports_sync.check_bite()  # pyright: ignore[reportAny]
+    def check_bite(self) -> tuple[float, float] | None:
+        result = self._script.exports_sync.check_bite()  # pyright: ignore[reportAny]
+        if result is None:
+            return None
+        return (result[0], result[1])
 
     def close(self) -> None:
         self._session.detach()
